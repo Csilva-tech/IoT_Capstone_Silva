@@ -17,14 +17,11 @@
 //MQTT Setup
 TCPClient TheClient;
 Adafruit_MQTT_SPARK mqtt(&TheClient, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
-
-Adafruit_MQTT_Publish Batt_Voltage = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Battery Voltage");
-Adafruit_MQTT_Publish Batt_Percent = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Battery Percentage");
-Adafruit_MQTT_Publish Batt_Temp = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Battery Temperature");
-
 Adafruit_MQTT_Subscribe CapHome = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/Capstone_Dashboard");
 
-
+Adafruit_MQTT_Publish Batt_Voltage = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/batteryvoltage");
+Adafruit_MQTT_Publish Batt_Percent = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/batterypercentage");
+Adafruit_MQTT_Publish Batt_Temp = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/batterytemperature");
 
 // Let Device OS manage the connection to the Particle Cloud
 SYSTEM_MODE(MANUAL);
@@ -32,8 +29,9 @@ Adafruit_LC709203F lc;
 
 void MQTT_connect();
 bool MQTT_ping();
-int currentTime, lastSecond;
+int currentTime, lastSecond, lastTime;
 float subValue, pubValue;
+float BV, BP, BT;
 
 // setup() runs once, when the device is first turned on
 void setup() {
@@ -49,7 +47,7 @@ void setup() {
   //Setup MQTT subscripntion
   mqtt.subscribe(&CapHome);
   
-  if ((currentTime - lastSecond)>10000) {
+  if ((currentTime - lastSecond) > 10000) {
     lastSecond = millis();
     Serial.println("Adafruit LC709203F demo");
   }
@@ -64,7 +62,7 @@ void setup() {
   lc.setThermistorB(3950);
   Serial.print("Thermistor B = "); Serial.println(lc.getThermistorB());
 
-  lc.setPackSize(LC709203F_APA_500MAH);
+  lc.setPackSize(LC709203F_APA_2000MAH);
 
   lc.setAlarmVoltage(3.8);
 }
@@ -91,7 +89,17 @@ void loop() {
   Serial.print("Batt_Temp:");
   Serial.println(lc.getCellTemperature(), 1);
 
-  delay(2000);
+  if((millis()-lastTime > 10000)){
+    if(mqtt.Update()){
+      Batt_Voltage.publish(lc.cellVoltage(), 3);
+      Serial.printf("Publishing Batt_Voltage %f \n", lc.cellVoltage());
+      Batt_Percent.publish(lc.cellPercent(), 1);
+      Serial.printf("Publishing Batt_Percent %f \n", lc.cellPercent());
+      Batt_Temp.publish(lc.getCellTemperature(), 1);
+      Serial.printf("Publishing Batt_Temp %f \n", lc.getCellTemperature());
+    }
+    lastTime = millis();
+  }
 }
 void MQTT_connect() {
   int8_t ret;
