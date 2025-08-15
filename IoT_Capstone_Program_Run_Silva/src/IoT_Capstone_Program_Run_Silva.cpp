@@ -59,12 +59,12 @@ void setup() {
   Serial.println(F("Found LC709203F"));
   Serial.print("Version: 0x"); Serial.println(lc.getICversion(), HEX);
 
-  lc.setThermistorB(3950);
-  Serial.print("Thermistor B = "); Serial.println(lc.getThermistorB());
+  //lc.setThermistorB(3950);
+  //Serial.print("Thermistor B = "); Serial.println(lc.getThermistorB());
 
   lc.setPackSize(LC709203F_APA_2000MAH);
 
-  lc.setAlarmVoltage(3.8);
+  //lc.setAlarmVoltage(3.8);
 }
 
 // loop() runs over and over again, as quickly as it can execute.

@@ -63,7 +63,7 @@ bool Adafruit_LC709203F::begin(TwoWire *wire) {
   if (!setPowerMode(LC709203F_POWER_OPERATE))
     return false;
 
-  if (!setPackSize(LC709203F_APA_500MAH))
+  if (!setPackSize(LC709203F_APA_2000MAH))
     return false;
 
   /*
